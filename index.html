@@ -627,9 +627,11 @@ function rRents(){
       ${isEd?`<div style="background:#F7F8FA;border-radius:8px;padding:12px;margin-bottom:12px">
         <div style="margin-bottom:8px"><label class="fl2">Ενοικιαστής</label><input class="fi" id="eT${n}" value="${r.tenant||""}" placeholder="Όνομα"></div>
         <div><label class="fl2">Μηνιαίο Ενοίκιο(EUR)</label><input class="fi" id="eR${n}" value="${r.monthlyRent||""}" placeholder="0.00"></div>
+        <div style="margin-bottom:8px"><label class="fl2">Αριθμός Παροχής ΔΕΗ</label><input class="fi" id="eDEH${n}" value="${r.deh||''}" placeholder="π.χ. 12345678"></div>
       </div>`:`<div style="margin-bottom:12px;padding:10px 12px;background:#F7F8FA;border-radius:8px">
         <div style="font-size:11px;color:#6B7A8D">Ενοικιαστής</div>
         <div style="font-size:14px;font-weight:600;margin-bottom:6px">${r.tenant||"—"}</div>
+        ${r.deh?`<div style="font-size:11px;color:#6B7A8D">Αρ. Παροχής ΔΕΗ</div><div style="font-size:13px;font-weight:600;color:#1B2A4A;margin-bottom:6px">${r.deh}</div>`:""}
         <div style="font-size:11px;color:#6B7A8D">Μηνιαίο Ενοίκιο</div>
         <div style="font-size:16px;font-weight:700;color:#1A4E8B">${fmt(du)}</div>
       </div>`}
@@ -696,7 +698,8 @@ window.tER=async n=>{
     const t=document.getElementById("eT"+n)?.value.trim()||"";
     const mr=pA(document.getElementById("eR"+n)?.value||"0");
     const id="house_"+n;const ex=RD.find(r=>r.id===id)||{id};
-    ex.tenant=t;ex.monthlyRent=mr;
+    const deh=document.getElementById("eDEH"+n)?.value.trim()||"";
+    ex.tenant=t;ex.monthlyRent=mr;ex.deh=deh;
     const i=RD.findIndex(r=>r.id===id);if(i>=0)RD[i]=ex;else RD.push(ex);
     await fbs("rents_2026",id,ex);editRent=null;
   }else editRent=n;
