@@ -416,10 +416,10 @@ function rEnt(){
         <td><span class="tag" style="background:${e.activity==="Κατοικία"?"#EBF2FB":e.activity==="Consulting"?"#FEFAE8":"#F0EAFB"};color:${e.activity==="Κατοικία"?"#1A4E8B":e.activity==="Consulting"?"#B8860B":"#5B2C8B"}">${e.activity==="Κατοικία"?"🏠":e.activity==="Consulting"?"💼":"📦"} ${e.activity}</span></td>
         <td><span class="tag" style="background:${e.type==="Έσοδο"?"#E8F5EE":"#FDF0F0"};color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${e.type}</span></td>
         <td style="color:#6B7A8D;white-space:nowrap">${e.supplier||"-"}</td>
-        <td style="text-align:right;font-weight:700;color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${fmt(e.activity==="Consulting"&&e.type==="Έσοδο" ? Number(e.amount) : Number(e.amount)+Number(e.vat||0))}</td>
+        <td style="text-align:right;font-weight:700;color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${fmt(e.type==="Έξοδο"||e.activity==="Consulting" ? Number(e.amount) : Number(e.amount)+Number(e.vat||0))}</td>
         <td onclick="event.stopPropagation()">${delConfirm===e.id
-          ?`<span style="white-space:nowrap"><button onclick="window.doDel('${e.id}')" style="background:#8B1A1A;color:#fff;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">Διαγραφή</button> <button onclick="window.canDel()" style="border:1px solid #DDE4ED;background:transparent;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">X</button></span>`
-          :`<button onclick="window.conDel('${e.id}')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px">🗑</button>`}</td>
+          ?`<span style="white-space:nowrap"><button onclick="event.stopPropagation();window.doDel('${e.id}')" style="background:#8B1A1A;color:#fff;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">Διαγραφή</button> <button onclick="event.stopPropagation();window.canDel()" style="border:1px solid #DDE4ED;background:transparent;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">X</button></span>`
+          :`<button onclick="event.stopPropagation();window.conDel('${e.id}')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px">🗑</button>`}</td>
       </tr>
       ${ex?`<tr><td colspan="6" class="dc" style="background:${e.type==="Έσοδο"?"#D8F2E4":"#ECECEC"}">
         <div class="dg">
