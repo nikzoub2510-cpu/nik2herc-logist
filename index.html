@@ -217,6 +217,31 @@ function startL(){
     else if(curView==="entries")rEnt();
   },()=>sm("✗ Offline","#FF8080"));
 }
+
+// Event delegation for delete buttons in entries table
+document.getElementById("v-entries").addEventListener("click", async function(ev) {
+  const btn = ev.target.closest("button[data-action]");
+  if(!btn) return;
+  ev.stopPropagation();
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+  if(action==="del") {
+    // Show confirm
+    btn.dataset.action="confirm";
+    btn.textContent="Διαγραφή";
+    btn.style.cssText="background:#8B1A1A;color:#fff;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:4px";
+    const x = document.createElement("button");
+    x.textContent="X";
+    x.style.cssText="border:1px solid #DDE4ED;background:transparent;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px";
+    x.dataset.action="cancel";
+    x.dataset.id=id;
+    btn.parentNode.appendChild(x);
+  } else if(action==="confirm") {
+    await fbd(COL, id);
+  } else if(action==="cancel") {
+    rEnt();
+  }
+});
 async function seedE(){
   const s=await getDocs(collection(db,COL));if(!s.empty)return;
   const SD=[
@@ -416,8 +441,10 @@ function rEnt(){
         <td><span class="tag" style="background:${e.activity==="Κατοικία"?"#EBF2FB":e.activity==="Consulting"?"#FEFAE8":"#F0EAFB"};color:${e.activity==="Κατοικία"?"#1A4E8B":e.activity==="Consulting"?"#B8860B":"#5B2C8B"}">${e.activity==="Κατοικία"?"🏠":e.activity==="Consulting"?"💼":"📦"} ${e.activity}</span></td>
         <td><span class="tag" style="background:${e.type==="Έσοδο"?"#E8F5EE":"#FDF0F0"};color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${e.type}</span></td>
         <td style="color:#6B7A8D;white-space:nowrap">${e.supplier||"-"}</td>
-        <td style="text-align:right;font-weight:700;color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${fmt(Number(e.amount))}</td>
-        <td id="dc_${e.id}" onclick="event.stopPropagation()"></td>
+        <td style="text-align:right;font-weight:700;color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${fmt(Number(e.grossAmount||e.amount)+Number(e.vat||0))}</td>
+        <td onclick="event.stopPropagation()">
+          <button data-id="${e.id}" data-action="del" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px">🗑</button>
+        </td>
       </tr>
       ${ex?`<tr><td colspan="6" class="dc" style="background:${e.type==="Έσοδο"?"#D8F2E4":"#ECECEC"}">
         <div class="dg">
@@ -432,31 +459,11 @@ function rEnt(){
     }).join("")}
     </tbody>
   </table></div>`;
-  setTimeout(()=>fillDelBtns(fil), 0);
 }
 window.sF=(k,v)=>{filt[k]=v;rEnt();};
 
-function fillDelBtns(entries_list) {
-  entries_list.forEach(e => {
-    const td = document.getElementById("dc_"+e.id);
-    if(!td) return;
-    if(delConfirm===e.id) {
-      td.innerHTML = `<span style="white-space:nowrap">
-        <button style="background:#8B1A1A;color:#fff;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px"
-          onclick="event.stopPropagation();window.doDel('${e.id}')">Διαγραφή</button>
-        <button style="border:1px solid #DDE4ED;background:transparent;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px"
-          onclick="event.stopPropagation();window.canDel()">X</button>
-      </span>`;
-    } else {
-      td.innerHTML = `<button style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px"
-        onclick="event.stopPropagation();window.conDel('${e.id}')">🗑</button>`;
-    }
-  });
-}
 window.tR=id=>{expanded.has(id)?expanded.delete(id):expanded.add(id);rEnt();};
-window.conDel=id=>{delConfirm=id;rEnt();};
-window.canDel=()=>{delConfirm=null;rEnt();};
-window.doDel=async id=>{delConfirm=null;await fbd(COL,id);};
+window.doDel=async id=>{await fbd(COL,id);};
 
 // ── ADD FORM ──────────────────────────────────────────────────
 function rAdd(){
@@ -510,8 +517,7 @@ function rAdd(){
           <select id="fV" class="fi" tabindex="8" onchange="window.oVC()">
             ${["0","6","13","24"].map(p=>`<option value="${p}" ${p==="24"?"selected":""}>${p}%</option>`).join("")}
           </select></div>
-        <div><label class="fl2">Καθαρή Αξία(EUR) *</label><input id="fAm" class="fi" placeholder="0.00" tabindex="9" oninput="window.oAI()"></div>
-        <div><label class="fl2">Αξία με ΦΠΑ(EUR)</label><input id="fAV" class="fi" placeholder="0.00" tabindex="10" oninput="window.oAVI()"></div>
+        <div class="fu"><label class="fl2">${fAct==="Consulting"&&fType==="Έσοδο"?"Ακαθάριστη Αξία (EUR) *":"Τελική Αξία με ΦΠΑ (EUR) *"}</label><input id="fAV" class="fi" placeholder="0.00" tabindex="9" oninput="window.oAVI()"></div>
         <div id="pB" style="grid-column:1/-1;display:none"></div>
         <div class="fu"><label class="fl2">Σημείωση</label><input id="fN" class="fi" placeholder="Προαιρετική..." tabindex="11" onkeydown="if(event.key==='Enter')window.doSv()"></div>
       </div>
@@ -529,41 +535,39 @@ window.sTy=t=>{fType=t;document.getElementById("bEx").className="tb"+(t==="Έξ�
 window.oAC=()=>{fAct=document.getElementById("fA").value;window.uC();window.uP();};
 window.uC=()=>{const cats=(CATS[fAct]?.[fType]||[]).concat(extraCats[fAct]?.[fType]||[]);const s=document.getElementById("fC");if(!s)return;s.innerHTML=`<option value="">-- Επιλέξτε --</option>`+cats.map(c=>`<option>${c}</option>`).join("");};
 window.acat=()=>{const n=prompt("Νέα κατηγορία:");if(!n?.trim())return;if(!extraCats[fAct])extraCats[fAct]={};if(!extraCats[fAct][fType])extraCats[fAct][fType]=[];extraCats[fAct][fType].push(n.trim());window.uC();document.getElementById("fC").value=n.trim();};
-window.oVC=()=>window.oAI();
-window.oAI=()=>{
-  const a=pA(document.getElementById("fAm")?.value||"");
-  const vp=parseFloat(document.getElementById("fV")?.value||"24");
-  const va=Math.round(a*(vp/100)*100)/100;
-  const fv=document.getElementById("fAV");if(fv&&a>0)fv.value=(a+va).toFixed(2);else if(fv&&a<=0)fv.value="";
-  window.uP();
-};
-window.oAVI=()=>{
-  const tot=pA(document.getElementById("fAV")?.value||"");
-  const vp=parseFloat(document.getElementById("fV")?.value||"24");
-  const net=Math.round(tot/(1+vp/100)*100)/100;
-  const fa=document.getElementById("fAm");if(fa&&tot>0)fa.value=net.toFixed(2);else if(fa&&tot<=0)fa.value="";
-  window.uP();
-};
+window.oVC=()=>window.oAVI();
+window.oAVI=()=>window.uP();
 window.uP=()=>{
-  const a=pA(document.getElementById("fAm")?.value||"");
+  const tot=pA(document.getElementById("fAV")?.value||"");
   const vp=parseFloat(document.getElementById("fV")?.value||"24");
   const ci=fAct==="Consulting"&&fType==="Έσοδο";
   const box=document.getElementById("pB");if(!box)return;
-  if(a<=0){box.style.display="none";return;}
-  const vA=Math.round(a*(vp/100)*100)/100;
-  const w=ci?Math.round(a*WH*100)/100:0;
-  const received=ci?a+vA-w:0;
-  const col=fType==="Έσοδο"?a+vA:a+vA;
+  if(tot<=0){box.style.display="none";return;}
   box.style.display="block";
   if(ci){
+    // Consulting income: user types gross, we calc VAT and withholding
+    const vA=Math.round(tot*(vp/100)*100)/100;
+    const w=Math.round(tot*WH*100)/100;
+    const received=tot+vA-w;
     box.style.cssText="grid-column:1/-1;background:#F0EAFB;border:1px solid #C9B0F0;border-radius:8px;padding:12px 16px";
-    box.innerHTML=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center"><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Καθαρή</div><div style="font-size:14px;font-weight:700;color:#5B2C8B">${fmt(a)}</div></div><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">ΦΠΑ ${vp}%</div><div style="font-size:14px;font-weight:700;color:#1A4E8B">+${fmt(vA)}</div></div><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Παρακράτηση</div><div style="font-size:14px;font-weight:700;color:#8B1A1A">-${fmt(w)}</div></div><div style="border-left:1px solid #C9B0F0;padding-left:8px"><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Σύνολο τιμ/γίου</div><div style="font-size:14px;font-weight:600;color:#1B2A4A">${fmt(a+vA)}</div></div><div style="border-left:1px solid #C9B0F0;padding-left:8px"><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Εισπράττεις</div><div style="font-size:14px;font-weight:700;color:#1A6B3C">${fmt(received)}</div></div></div>`;
-  }else if(fType==="Έξοδο"){
-    box.style.cssText="grid-column:1/-1;background:#FDF0F0;border:1px solid #F0C0C0;border-radius:8px;padding:10px 14px;display:flex;gap:20px;align-items:center";
-    box.innerHTML=`<span style="font-size:12px;color:#6B7A8D">Καθαρή:<strong>${fmt(a)}</strong></span><span style="font-size:12px;color:#6B7A8D">ΦΠΑ ${vp}%:<strong style="color:#1A4E8B">${fmt(vA)}</strong></span><span style="font-size:15px;font-weight:700;color:#8B1A1A;margin-left:auto">Πληρώνεις:${fmt(a+vA)}</span>`;
-  }else{
-    box.style.cssText="grid-column:1/-1;background:#EBF2FB;border:1px solid #BDD4F0;border-radius:8px;padding:10px 14px;display:flex;gap:20px;align-items:center";
-    box.innerHTML=`<span style="font-size:12px;color:#6B7A8D">ΦΠΑ ${vp}%:<strong style="color:#1A4E8B">${fmt(vA)}</strong></span><span style="font-size:12px;color:#6B7A8D">Σύνολο:<strong>${fmt(a+vA)}</strong></span>`;
+    box.innerHTML=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center">
+      <div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Ακαθάριστο</div><div style="font-size:14px;font-weight:700;color:#5B2C8B">${fmt(tot)}</div></div>
+      <div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">ΦΠΑ ${vp}%</div><div style="font-size:14px;font-weight:700;color:#1A4E8B">+${fmt(vA)}</div></div>
+      <div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Παρακράτηση 20%</div><div style="font-size:14px;font-weight:700;color:#8B1A1A">-${fmt(w)}</div></div>
+      <div style="border-left:1px solid #C9B0F0;padding-left:8px"><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Σύνολο τιμ/γίου</div><div style="font-size:14px;font-weight:600;color:#1B2A4A">${fmt(tot+vA)}</div></div>
+      <div style="border-left:1px solid #C9B0F0;padding-left:8px"><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Εισπράττεις</div><div style="font-size:14px;font-weight:700;color:#1A6B3C">${fmt(received)}</div></div>
+    </div>`;
+  } else {
+    // All others: user types total with VAT, we back-calc net
+    const net=Math.round(tot/(1+vp/100)*100)/100;
+    const vA=Math.round((tot-net)*100)/100;
+    if(fType==="Έξοδο"){
+      box.style.cssText="grid-column:1/-1;background:#FDF0F0;border:1px solid #F0C0C0;border-radius:8px;padding:10px 14px;display:flex;gap:20px;align-items:center";
+      box.innerHTML=`<span style="font-size:12px;color:#6B7A8D">Καθαρή:<strong>${fmt(net)}</strong></span><span style="font-size:12px;color:#6B7A8D">ΦΠΑ ${vp}%:<strong style="color:#1A4E8B">${fmt(vA)}</strong></span><span style="font-size:15px;font-weight:700;color:#8B1A1A;margin-left:auto">Πληρώνεις:<strong>${fmt(tot)}</strong></span>`;
+    } else {
+      box.style.cssText="grid-column:1/-1;background:#E8F5EE;border:1px solid #A8D5BA;border-radius:8px;padding:10px 14px;display:flex;gap:20px;align-items:center";
+      box.innerHTML=`<span style="font-size:12px;color:#6B7A8D">Καθαρή:<strong>${fmt(net)}</strong></span><span style="font-size:12px;color:#6B7A8D">ΦΠΑ ${vp}%:<strong style="color:#1A4E8B">${fmt(vA)}</strong></span><span style="font-size:15px;font-weight:700;color:#1A6B3C;margin-left:auto">Εισπράττεις:<strong>${fmt(tot)}</strong></span>`;
+    }
   }
 };
 window.uI=()=>{
@@ -574,25 +578,26 @@ window.uI=()=>{
 };
 window.doSv=async()=>{
   const desc=document.getElementById("fDe")?.value.trim();
-  const amtS=document.getElementById("fAm")?.value.trim();
+  const amtS=document.getElementById("fAV")?.value.trim();
   const eB=document.getElementById("eB");
   if(!desc||!amtS){if(eB){eB.textContent="⚠️ Συμπληρώστε Περιγραφή και Αξία";eB.style.display="block";}return;}
   if(eB)eB.style.display="none";
   const vp=parseFloat(document.getElementById("fV")?.value||"24");
-  const k=pA(amtS);                          // καθαρή αξία
-  const vA=Math.round(k*(vp/100)*100)/100;   // ΦΠΑ
-  const total=Math.round((k+vA)*100)/100;    // αξία με ΦΠΑ
+  const entered=pA(document.getElementById("fAV")?.value||"");
   const ci=fAct==="Consulting"&&fType==="Έσοδο";
-  const w=ci?Math.round(k*WH*100)/100:0;    // παρακράτηση
-  // amount = πάντα αξία με ΦΠΑ
-  // για consulting έσοδο: amount = total (τιμολόγιο), received = total - w
+  // Consulting: entered=gross, calc VAT+withholding, amount=received
+  // Others: entered=total with VAT, back-calc net, amount=total
+  const grossVal = ci ? entered : Math.round(entered/(1+vp/100)*100)/100;
+  const vA = ci ? Math.round(entered*(vp/100)*100)/100 : Math.round((entered-grossVal)*100)/100;
+  const w  = ci ? Math.round(entered*WH*100)/100 : 0;
+  const amount = ci ? Math.round((entered+vA-w)*100)/100 : entered;
   const dd=String(document.getElementById("fD")?.value||"1").padStart(2,"0");
   const mm=document.getElementById("fM")?.value||"01";
   const yy=document.getElementById("fY")?.value||"2026";
   const newId=uid();
   sm("⟳ Αποθήκευση...","#FFD700");
-  await fbs(COL,newId,{id:newId,date:`${yy}-${mm}-${dd}`,activity:fAct,type:fType,category:document.getElementById("fC")?.value||"",description:desc,supplier:ddSup,invoice:fInv,note:document.getElementById("fN")?.value.trim()||"",grossAmount:k,withholding:w,vat:vA,amount:total,vatPct:String(vp)});
-  document.getElementById("fDe").value="";document.getElementById("fAm").value="";document.getElementById("fAV").value="";document.getElementById("fN").value="";document.getElementById("fC").value="";document.getElementById("fI").checked=false;
+  await fbs(COL,newId,{id:newId,date:`${yy}-${mm}-${dd}`,activity:fAct,type:fType,category:document.getElementById("fC")?.value||"",description:desc,supplier:ddSup,invoice:fInv,note:document.getElementById("fN")?.value.trim()||"",grossAmount:grossVal,withholding:w,vat:vA,amount:amount,vatPct:String(vp)});
+  document.getElementById("fDe").value="";document.getElementById("fAV").value="";document.getElementById("fN").value="";document.getElementById("fC").value="";document.getElementById("fI").checked=false;
   fInv=false;ddSup="";document.getElementById("ddV").textContent="-- Επιλέξτε --";document.getElementById("ddV").style.color="#9CA3AF";
   window.uI();window.uP();
   const ob=document.getElementById("okB");if(ob){ob.style.display="flex";setTimeout(()=>ob.style.display="none",3000);}
