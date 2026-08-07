@@ -416,10 +416,8 @@ function rEnt(){
         <td><span class="tag" style="background:${e.activity==="Κατοικία"?"#EBF2FB":e.activity==="Consulting"?"#FEFAE8":"#F0EAFB"};color:${e.activity==="Κατοικία"?"#1A4E8B":e.activity==="Consulting"?"#B8860B":"#5B2C8B"}">${e.activity==="Κατοικία"?"🏠":e.activity==="Consulting"?"💼":"📦"} ${e.activity}</span></td>
         <td><span class="tag" style="background:${e.type==="Έσοδο"?"#E8F5EE":"#FDF0F0"};color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${e.type}</span></td>
         <td style="color:#6B7A8D;white-space:nowrap">${e.supplier||"-"}</td>
-        <td style="text-align:right;font-weight:700;color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${fmt(e.type==="Έξοδο"||e.activity==="Consulting" ? Number(e.amount) : Number(e.amount)+Number(e.vat||0))}</td>
-        <td onclick="event.stopPropagation()">${delConfirm===e.id
-          ?`<span style="white-space:nowrap"><button onclick="event.stopPropagation();window.doDel('${e.id}')" style="background:#8B1A1A;color:#fff;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">Διαγραφή</button> <button onclick="event.stopPropagation();window.canDel()" style="border:1px solid #DDE4ED;background:transparent;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px">X</button></span>`
-          :`<button onclick="event.stopPropagation();window.conDel('${e.id}')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px">🗑</button>`}</td>
+        <td style="text-align:right;font-weight:700;color:${e.type==="Έσοδο"?"#1A6B3C":"#8B1A1A"}">${fmt(Number(e.amount))}</td>
+        <td id="dc_${e.id}" onclick="event.stopPropagation()"></td>
       </tr>
       ${ex?`<tr><td colspan="6" class="dc" style="background:${e.type==="Έσοδο"?"#D8F2E4":"#ECECEC"}">
         <div class="dg">
@@ -434,8 +432,27 @@ function rEnt(){
     }).join("")}
     </tbody>
   </table></div>`;
+  setTimeout(()=>fillDelBtns(fil), 0);
 }
 window.sF=(k,v)=>{filt[k]=v;rEnt();};
+
+function fillDelBtns(entries_list) {
+  entries_list.forEach(e => {
+    const td = document.getElementById("dc_"+e.id);
+    if(!td) return;
+    if(delConfirm===e.id) {
+      td.innerHTML = `<span style="white-space:nowrap">
+        <button style="background:#8B1A1A;color:#fff;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px"
+          onclick="event.stopPropagation();window.doDel('${e.id}')">Διαγραφή</button>
+        <button style="border:1px solid #DDE4ED;background:transparent;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px"
+          onclick="event.stopPropagation();window.canDel()">X</button>
+      </span>`;
+    } else {
+      td.innerHTML = `<button style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px"
+        onclick="event.stopPropagation();window.conDel('${e.id}')">🗑</button>`;
+    }
+  });
+}
 window.tR=id=>{expanded.has(id)?expanded.delete(id):expanded.add(id);rEnt();};
 window.conDel=id=>{delConfirm=id;rEnt();};
 window.canDel=()=>{delConfirm=null;rEnt();};
@@ -535,14 +552,15 @@ window.uP=()=>{
   if(a<=0){box.style.display="none";return;}
   const vA=Math.round(a*(vp/100)*100)/100;
   const w=ci?Math.round(a*WH*100)/100:0;
-  const col=ci?a+vA-w:(fType==="Έξοδο"?a+vA:a);
+  const received=ci?a+vA-w:0;
+  const col=fType==="Έσοδο"?a+vA:a+vA;
   box.style.display="block";
   if(ci){
     box.style.cssText="grid-column:1/-1;background:#F0EAFB;border:1px solid #C9B0F0;border-radius:8px;padding:12px 16px";
-    box.innerHTML=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center"><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Καθαρή</div><div style="font-size:14px;font-weight:700;color:#5B2C8B">${fmt(a)}</div></div><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">ΦΠΑ ${vp}%</div><div style="font-size:14px;font-weight:700;color:#1A4E8B">+${fmt(vA)}</div></div><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Παρακράτηση</div><div style="font-size:14px;font-weight:700;color:#8B1A1A">-${fmt(w)}</div></div><div style="border-left:1px solid #C9B0F0;padding-left:8px"><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Σύνολο τιμ/γίου</div><div style="font-size:14px;font-weight:600;color:#1B2A4A">${fmt(a+vA)}</div></div><div style="border-left:1px solid #C9B0F0;padding-left:8px"><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Εισπράττεις</div><div style="font-size:14px;font-weight:700;color:#1A6B3C">${fmt(col)}</div></div></div>`;
+    box.innerHTML=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center"><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Καθαρή</div><div style="font-size:14px;font-weight:700;color:#5B2C8B">${fmt(a)}</div></div><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">ΦΠΑ ${vp}%</div><div style="font-size:14px;font-weight:700;color:#1A4E8B">+${fmt(vA)}</div></div><div><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Παρακράτηση</div><div style="font-size:14px;font-weight:700;color:#8B1A1A">-${fmt(w)}</div></div><div style="border-left:1px solid #C9B0F0;padding-left:8px"><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Σύνολο τιμ/γίου</div><div style="font-size:14px;font-weight:600;color:#1B2A4A">${fmt(a+vA)}</div></div><div style="border-left:1px solid #C9B0F0;padding-left:8px"><div style="font-size:10px;color:#6B7A8D;margin-bottom:2px">Εισπράττεις</div><div style="font-size:14px;font-weight:700;color:#1A6B3C">${fmt(received)}</div></div></div>`;
   }else if(fType==="Έξοδο"){
     box.style.cssText="grid-column:1/-1;background:#FDF0F0;border:1px solid #F0C0C0;border-radius:8px;padding:10px 14px;display:flex;gap:20px;align-items:center";
-    box.innerHTML=`<span style="font-size:12px;color:#6B7A8D">Καθαρή:<strong>${fmt(a)}</strong></span><span style="font-size:12px;color:#6B7A8D">ΦΠΑ ${vp}%:<strong style="color:#1A4E8B">${fmt(vA)}</strong></span><span style="font-size:15px;font-weight:700;color:#8B1A1A;margin-left:auto">Πληρώνεις:${fmt(col)}</span>`;
+    box.innerHTML=`<span style="font-size:12px;color:#6B7A8D">Καθαρή:<strong>${fmt(a)}</strong></span><span style="font-size:12px;color:#6B7A8D">ΦΠΑ ${vp}%:<strong style="color:#1A4E8B">${fmt(vA)}</strong></span><span style="font-size:15px;font-weight:700;color:#8B1A1A;margin-left:auto">Πληρώνεις:${fmt(a+vA)}</span>`;
   }else{
     box.style.cssText="grid-column:1/-1;background:#EBF2FB;border:1px solid #BDD4F0;border-radius:8px;padding:10px 14px;display:flex;gap:20px;align-items:center";
     box.innerHTML=`<span style="font-size:12px;color:#6B7A8D">ΦΠΑ ${vp}%:<strong style="color:#1A4E8B">${fmt(vA)}</strong></span><span style="font-size:12px;color:#6B7A8D">Σύνολο:<strong>${fmt(a+vA)}</strong></span>`;
@@ -561,16 +579,19 @@ window.doSv=async()=>{
   if(!desc||!amtS){if(eB){eB.textContent="⚠️ Συμπληρώστε Περιγραφή και Αξία";eB.style.display="block";}return;}
   if(eB)eB.style.display="none";
   const vp=parseFloat(document.getElementById("fV")?.value||"24");
-  const k=pA(amtS);
-  const vA=Math.round(k*(vp/100)*100)/100;
+  const k=pA(amtS);                          // καθαρή αξία
+  const vA=Math.round(k*(vp/100)*100)/100;   // ΦΠΑ
+  const total=Math.round((k+vA)*100)/100;    // αξία με ΦΠΑ
   const ci=fAct==="Consulting"&&fType==="Έσοδο";
-  const w=ci?Math.round(k*WH*100)/100:0;
-  const fa=ci?k+vA-w:(fType==="Έξοδο"?k+vA:k);
+  const w=ci?Math.round(k*WH*100)/100:0;    // παρακράτηση
+  // amount = πάντα αξία με ΦΠΑ
+  // για consulting έσοδο: amount = total (τιμολόγιο), received = total - w
   const dd=String(document.getElementById("fD")?.value||"1").padStart(2,"0");
   const mm=document.getElementById("fM")?.value||"01";
   const yy=document.getElementById("fY")?.value||"2026";
+  const newId=uid();
   sm("⟳ Αποθήκευση...","#FFD700");
-  await fbs(COL,uid(),{id:uid(),date:`${yy}-${mm}-${dd}`,activity:fAct,type:fType,category:document.getElementById("fC")?.value||"",description:desc,supplier:ddSup,invoice:fInv,note:document.getElementById("fN")?.value.trim()||"",grossAmount:k,withholding:w,vat:vA,amount:fa,vatPct:String(vp)});
+  await fbs(COL,newId,{id:newId,date:`${yy}-${mm}-${dd}`,activity:fAct,type:fType,category:document.getElementById("fC")?.value||"",description:desc,supplier:ddSup,invoice:fInv,note:document.getElementById("fN")?.value.trim()||"",grossAmount:k,withholding:w,vat:vA,amount:total,vatPct:String(vp)});
   document.getElementById("fDe").value="";document.getElementById("fAm").value="";document.getElementById("fAV").value="";document.getElementById("fN").value="";document.getElementById("fC").value="";document.getElementById("fI").checked=false;
   fInv=false;ddSup="";document.getElementById("ddV").textContent="-- Επιλέξτε --";document.getElementById("ddV").style.color="#9CA3AF";
   window.uI();window.uP();
@@ -643,8 +664,14 @@ function rRents(){
       <div style="background:#F7F8FA;border-radius:8px;padding:10px;margin-bottom:8px">
         <div class="fl2" style="margin-bottom:6px">Νέα Πληρωμή</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-          <input class="fi" type="date" id="rpD${n}" value="${td()}" style="font-size:12px;padding:7px">
-          <input class="fi" type="text" id="rpA${n}" placeholder="Ποσό" style="font-size:12px;padding:7px">
+          <div><label style="font-size:10px;color:#6B7A8D;display:block;margin-bottom:2px">Ημερομηνία Πληρωμής</label><input class="fi" type="date" id="rpD${n}" value="${td()}" style="font-size:12px;padding:7px"></div>
+          <div><label style="font-size:10px;color:#6B7A8D;display:block;margin-bottom:2px">Ποσό (EUR)</label><input class="fi" type="text" id="rpA${n}" placeholder="Ποσό" style="font-size:12px;padding:7px"></div>
+        </div>
+        <div style="margin-bottom:6px">
+          <label style="font-size:10px;color:#6B7A8D;display:block;margin-bottom:2px">Αφορά Μήνα</label>
+          <select class="fi" id="rpM${n}" style="font-size:12px;padding:7px">
+            ${MF.map((m,i)=>`<option value="${new Date().getFullYear()+'-'+String(i+1).padStart(2,'0')}" ${i===new Date().getMonth()?"selected":""}>${m} ${new Date().getFullYear()}</option>`).join("")}
+          </select>
         </div>
         <button onclick="window.aRP(${n})" style="width:100%;background:#1A6B3C;color:#fff;border:none;padding:7px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">+ Πληρωμή</button>
       </div>
@@ -688,7 +715,12 @@ function rRents(){
     <div style="margin-bottom:8px;font-size:13px">Σύνολο: <strong style="color:#1A6B3C">${fmt(tot)}</strong></div>
     <div class="tw"><table class="tbl"><thead><tr><th>Ημερομηνία</th><th>Μήνας</th><th style="text-align:right">Ποσό</th><th></th></tr></thead><tbody>
       ${it.length===0?`<tr><td colspan="4" style="padding:20px;text-align:center;color:#6B7A8D">Δεν υπάρχουν</td></tr>`:""}
-      ${it.map((p,i)=>`<tr style="background:${i%2===0?"#fff":"#F7F8FA"}"><td>${p.date.split("-").reverse().join("/")}</td><td style="color:#6B7A8D">${p.month}</td><td style="text-align:right;font-weight:700;color:#1A6B3C">${fmt(p.amount)}</td><td><button onclick="window.dRP('${p.id}',${rentHist})" style="background:none;border:none;cursor:pointer;color:#ccc">🗑</button></td></tr>`).join("")}
+      ${it.map((p,i)=>`<tr style="background:${i%2===0?"#fff":"#F7F8FA"}">
+          <td>${p.date.split("-").reverse().join("/")}</td>
+          <td style="color:#6B7A8D">${p.month?MF[parseInt(p.month.split("-")[1])-1]+" "+p.month.split("-")[0]:"-"}</td>
+          <td style="text-align:right;font-weight:700;color:#1A6B3C">${fmt(p.amount)}</td>
+          <td><button onclick="window.dRP('${p.id}',${rentHist})" style="background:none;border:none;cursor:pointer;color:#ccc">🗑</button></td>
+        </tr>`).join("")}
     </tbody></table></div></div>`;
   }
   document.getElementById("v-rents").innerHTML=h;
@@ -707,8 +739,9 @@ window.tER=async n=>{
 };
 window.aRP=async n=>{
   const date=document.getElementById("rpD"+n)?.value,amt=document.getElementById("rpA"+n)?.value;
+  const month=document.getElementById("rpM"+n)?.value||date?.slice(0,7);
   if(!date||!amt)return;
-  const p={id:uid(),houseId:"house_"+n,date,month:date.slice(0,7),amount:pA(amt)};
+  const p={id:uid(),houseId:"house_"+n,date,month,amount:pA(amt)};
   RP.push(p);await fbs("rent_payments_2026",p.id,p);
   document.getElementById("rpA"+n).value="";rRents();
 };
