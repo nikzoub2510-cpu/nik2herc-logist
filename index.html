@@ -452,24 +452,7 @@ function rEnt(){
   document.getElementById("flt-mon")?.addEventListener("change",ev=>{filt.month=ev.target.value;rEnt();});
   document.getElementById("flt-sup")?.addEventListener("change",ev=>{filt.supplier=ev.target.value;rEnt();});
 
-  // Single event delegation listener for delete - inside module scope, has access to fbd
-  const tbl=document.getElementById("ent-body");
-  if(tbl){
-    tbl.addEventListener("click",async function delHandler(ev){
-      const btn=ev.target.closest("[data-del-id]");
-      if(!btn)return;
-      ev.stopPropagation();
-      const id=btn.getAttribute("data-del-id");
-      const desc=btn.getAttribute("data-del-desc");
-      const amt=btn.getAttribute("data-del-amt");
-      if(!confirm("Διαγραφή εγγραφής:\n\""+desc+"\" — "+amt))return;
-      try{
-        await fbd(COL,id);
-      }catch(err){
-        alert("Σφάλμα διαγραφής: "+err.message);
-      }
-    });
-  }
+
 
   const tbody=document.getElementById("ent-body");
   if(!tbody)return;
@@ -999,6 +982,21 @@ window.ST=async function(v){
   else if(v==="rents"){await loadR();rRents();}
   else if(v==="backup")rBackup();
 };
+
+// Permanent delete listener on document - never removed regardless of DOM changes
+document.addEventListener("click", async function(ev){
+  const btn=ev.target.closest("[data-del-id]");
+  if(!btn)return;
+  ev.stopPropagation();
+  const id=btn.getAttribute("data-del-id");
+  const desc=btn.getAttribute("data-del-desc")||"";
+  if(!confirm("Διαγραφή: \""+desc+"\"\nΕίσαι σίγουρος;"))return;
+  try{
+    await fbd(COL,id);
+  }catch(err){
+    alert("Σφάλμα: "+err.message);
+  }
+});
 
 sm("Σύνδεση...","#FFD700");
 await seedE();
