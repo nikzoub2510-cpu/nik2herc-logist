@@ -162,6 +162,11 @@ import{getFirestore,collection,getDocs,setDoc,deleteDoc,doc,onSnapshot,query}fro
 const app=initializeApp({apiKey:"AIzaSyB4U9JT51XYBoBxuKC0EH7_ccbgsU9n9Z4",authDomain:"logistirio-31bf5.firebaseapp.com",projectId:"logistirio-31bf5",storageBucket:"logistirio-31bf5.firebasestorage.app",messagingSenderId:"603500656898",appId:"1:603500656898:web:3a2077d7094a580a7caa1b"});
 const db=getFirestore(app);
 
+// Expose Firebase to window for use in dynamic DOM listeners
+window._db = db;
+window._deleteDoc = deleteDoc;
+window._doc = doc;
+
 const MF=["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος","Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"];
 const MS=["Ιαν","Φεβ","Μαρ","Απρ","Μαι","Ιουν","Ιουλ","Αυγ","Σεπ","Οκτ","Νοε","Δεκ"];
 const ACTS=["Κατοικία","Consulting","Εκτός Δραστηριότητας"];
@@ -478,7 +483,7 @@ function rEnt(){
       ev.stopPropagation();
       if(!confirm(`Διαγραφή εγγραφής:\n"${e.description}" — ${fmt(dispAmt)}`))return;
       try{
-        await deleteDoc(doc(db,COL,e.id));
+        await window._deleteDoc(window._doc(window._db,COL,e.id));
       }catch(err){alert("Σφάλμα: "+err.message);}
     });
     tdX.appendChild(xb);tr.appendChild(tdX);
