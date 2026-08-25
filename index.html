@@ -118,7 +118,15 @@ window.__del = async function(id, desc) {
   var url = "https://firestore.googleapis.com/v1/projects/logistirio-31bf5/databases/(default)/documents/entries_2026/" + id + "?key=AIzaSyB4U9JT51XYBoBxuKC0EH7_ccbgsU9n9Z4";
   try {
     var resp = await fetch(url, {method: "DELETE"});
-    if(!resp.ok && resp.status !== 204) {
+    if(resp.ok || resp.status === 204 || resp.status === 200) {
+      // Remove from local array and re-render immediately
+      if(window.__getE) {
+        var arr = window.__getE();
+        var idx = arr.findIndex(function(e){return e.id===id;});
+        if(idx>=0) arr.splice(idx,1);
+      }
+      if(window.__rEnt) window.__rEnt();
+    } else {
       var txt = await resp.text();
       alert("Σφάλμα διαγραφής: " + txt);
     }
@@ -228,6 +236,8 @@ async function getVD(){try{const s=await getDocs(collection(db,"settings"));cons
 async function saveVD(p){await setDoc(doc(db,"settings","vat_p"),{p});}
 
 function startL(){
+  window.__rEnt = rEnt;
+  window.__getE = ()=>E;
   onSnapshot(query(collection(db,COL)),snap=>{
     E=snap.docs.map(d=>d.data()).sort((a,b)=>a.date.localeCompare(b.date));
     sm("☁ Συνδεδεμένο","#90EE90");
