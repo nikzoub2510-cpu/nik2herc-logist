@@ -452,6 +452,25 @@ function rEnt(){
   document.getElementById("flt-mon")?.addEventListener("change",ev=>{filt.month=ev.target.value;rEnt();});
   document.getElementById("flt-sup")?.addEventListener("change",ev=>{filt.supplier=ev.target.value;rEnt();});
 
+  // Single event delegation listener for delete - inside module scope, has access to fbd
+  const tbl=document.getElementById("ent-body");
+  if(tbl){
+    tbl.addEventListener("click",async function delHandler(ev){
+      const btn=ev.target.closest("[data-del-id]");
+      if(!btn)return;
+      ev.stopPropagation();
+      const id=btn.getAttribute("data-del-id");
+      const desc=btn.getAttribute("data-del-desc");
+      const amt=btn.getAttribute("data-del-amt");
+      if(!confirm("Διαγραφή εγγραφής:\n\""+desc+"\" — "+amt))return;
+      try{
+        await fbd(COL,id);
+      }catch(err){
+        alert("Σφάλμα διαγραφής: "+err.message);
+      }
+    });
+  }
+
   const tbody=document.getElementById("ent-body");
   if(!tbody)return;
 
@@ -479,13 +498,9 @@ function rEnt(){
     tdX.style.cssText="text-align:center;padding:4px";
     const xb=document.createElement("button");
     xb.className="xbtn";xb.textContent="✕";
-    xb.addEventListener("click",async ev=>{
-      ev.stopPropagation();
-      if(!confirm(`Διαγραφή εγγραφής:\n"${e.description}" — ${fmt(dispAmt)}`))return;
-      try{
-        await window._deleteDoc(window._doc(window._db,COL,e.id));
-      }catch(err){alert("Σφάλμα: "+err.message);}
-    });
+    xb.setAttribute("data-del-id",e.id);
+    xb.setAttribute("data-del-desc",e.description||"");
+    xb.setAttribute("data-del-amt",fmt(dispAmt));
     tdX.appendChild(xb);tr.appendChild(tdX);
 
     // Date
