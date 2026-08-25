@@ -196,7 +196,10 @@ function startL(){
 
 function seedE(){
   return db.collection(COL).get().then(function(s){
-    if(!s.empty) return;
+    if(!s.empty) return; // has entries
+    // Check if we've seeded before (even if all were deleted)
+    return db.collection("settings").doc("seeded").get().then(function(d){
+      if(d.exists) return; // already seeded before
     var SD=[
       {id:"s1",date:"2026-01-01",activity:"Κατοικία",type:"Έξοδο",category:"Internet",description:"INTERNET ΚΟΡΑΚΑΣ",supplier:"ΚΟΡΑΚΑΣ",totalInvoice:150,net:150,vat:0,withholding:0,amount:150,invoice:true,note:"",vatPct:0},
       {id:"s2",date:"2026-01-15",activity:"Κατοικία",type:"Έξοδο",category:"Ρεύμα",description:"Ρεύμα 11/12-15/01",supplier:"ΔΕΗ",totalInvoice:58,net:58,vat:0,withholding:0,amount:58,invoice:true,note:"",vatPct:0},
@@ -217,9 +220,11 @@ function seedE(){
       {id:"s17",date:"2026-03-30",activity:"Κατοικία",type:"Έξοδο",category:"Νερό",description:"Νερό 30/11-30/03",supplier:"ΔΕΥΑΡ",totalInvoice:12.50,net:12.50,vat:0,withholding:0,amount:12.50,invoice:true,note:"",vatPct:0},
       {id:"s18",date:"2026-06-01",activity:"Κατοικία",type:"Έσοδο",category:"Προκαταβολή",description:"Προκαταβολή ΑΓΓΕΛΑΚΗΣ",supplier:"ΑΓΓΕΛΑΚΗΣ",totalInvoice:250,net:250,vat:0,withholding:0,amount:250,invoice:false,note:"Υπόλοιπο 350 ευρω",vatPct:0},
     ];
-    var p = Promise.resolve();
-    SD.forEach(function(e){p=p.then(function(){return fbs(COL,e.id,e);});});
-    return p;
+      db.collection("settings").doc("seeded").set({done:true});
+      var p = Promise.resolve();
+      SD.forEach(function(e){p=p.then(function(){return fbs(COL,e.id,e);});});
+      return p;
+    });
   });
 }
 
