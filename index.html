@@ -236,7 +236,6 @@ async function getVD(){try{const s=await getDocs(collection(db,"settings"));cons
 async function saveVD(p){await setDoc(doc(db,"settings","vat_p"),{p});}
 
 function startL(){
-  window.__rEnt = rEnt;
   window.__getE = ()=>E;
   onSnapshot(query(collection(db,COL)),snap=>{
     E=snap.docs.map(d=>d.data()).sort((a,b)=>a.date.localeCompare(b.date));
@@ -581,6 +580,9 @@ function rEnt(){
     }
   });
 }
+
+// expose rEnt immediately after definition
+window.__rEnt = rEnt;
 
 // ── ADD FORM ───────────────────────────────────────────────
 function rAdd(){
