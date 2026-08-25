@@ -477,7 +477,9 @@ function rEnt(){
     xb.addEventListener("click",async ev=>{
       ev.stopPropagation();
       if(!confirm(`Διαγραφή εγγραφής:\n"${e.description}" — ${fmt(dispAmt)}`))return;
-      try{await fbd(COL,e.id);}catch(err){alert("Σφάλμα: "+err.message);}
+      try{
+        await deleteDoc(doc(db,COL,e.id));
+      }catch(err){alert("Σφάλμα: "+err.message);}
     });
     tdX.appendChild(xb);tr.appendChild(tdX);
 
