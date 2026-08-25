@@ -175,6 +175,10 @@ function saveVD(p){return db.collection("settings").doc("vat_p").set({p:p});}
 // ── DELETE ENTRY ──────────────────────────────────────────
 function delEntry(id, desc) {
   if(!confirm("Διαγραφή εγγραφής:\n\""+desc+"\"\nΕίσαι σίγουρος;")) return;
+  // Αφαίρεση άμεσα από τον πίνακα και re-render
+  E = E.filter(function(e){ return e.id !== id; });
+  rEnt();
+  // Διαγραφή από Firebase
   db.collection(COL).doc(id).delete()
     .then(function(){
       sm("✓ Διαγράφηκε","#90EE90");
