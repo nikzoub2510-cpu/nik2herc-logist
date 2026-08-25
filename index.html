@@ -112,6 +112,20 @@ function changeYear(){
   if(n&&!isNaN(Number(n)))document.getElementById("yr").textContent=n;
 }
 window.addEventListener("load",function(){setTimeout(function(){var i=document.getElementById("pi");if(i)i.focus();},300);});
+
+window.__del = async function(id, desc) {
+  if(!confirm("Διαγραφή:\n" + (desc||"") + "\nΕίσαι σίγουρος;")) return;
+  var url = "https://firestore.googleapis.com/v1/projects/logistirio-31bf5/databases/(default)/documents/entries_2026/" + id + "?key=AIzaSyB4U9JT51XYBoBxuKC0EH7_ccbgsU9n9Z4";
+  try {
+    var resp = await fetch(url, {method: "DELETE"});
+    if(!resp.ok && resp.status !== 204) {
+      var txt = await resp.text();
+      alert("Σφάλμα διαγραφής: " + txt);
+    }
+  } catch(err) {
+    alert("Σφάλμα: " + err.message);
+  }
+};
 </script>
 
 <div id="po" class="po">
@@ -980,16 +994,6 @@ window.ST=async function(v){
   else if(v==="add")rAdd();
   else if(v==="rents"){await loadR();rRents();}
   else if(v==="backup")rBackup();
-};
-
-// Global delete function - called from button onclick
-window.__del = async function(id, desc) {
-  if(!confirm("Διαγραφή:\n" + desc + "\nΕίσαι σίγουρος;")) return;
-  try {
-    await fbd(COL, id);
-  } catch(err) {
-    alert("Σφάλμα: " + err.message);
-  }
 };
 
 sm("Σύνδεση...","#FFD700");
