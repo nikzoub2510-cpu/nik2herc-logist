@@ -174,22 +174,17 @@ function saveVD(p){return db.collection("settings").doc("vat_p").set({p:p});}
 
 // ── DELETE ENTRY ──────────────────────────────────────────
 function delEntry(id, desc) {
-  if(!confirm("Διαγραφή εγγραφής:\n\""+desc+"\"\nΕίσαι σίγουρος;")) return;
+  if(!confirm("Διαγραφή;")) return;
   db.collection(COL).doc(id).delete()
     .then(function(){
-      sm("✓ Διαγράφηκε","#90EE90");
-      // Φόρτωσε ξανά από Firebase και re-render
       return db.collection(COL).get();
     })
     .then(function(snap){
-      if(!snap) return;
       E = snap.docs.map(function(d){return d.data();}).sort(function(a,b){return a.date.localeCompare(b.date);});
       rEnt();
-      rDash();
+      sm("Διαγράφηκε","#90EE90");
     })
-    .catch(function(err){
-      alert("Σφάλμα: "+err.message);
-    });
+    .catch(function(err){alert("ERR:"+err.message);});
 }
 
 // ── REALTIME LISTENER ─────────────────────────────────────
