@@ -481,9 +481,8 @@ function rEnt(){
     tdX.style.cssText="text-align:center;padding:4px";
     const xb=document.createElement("button");
     xb.className="xbtn";xb.textContent="✕";
-    xb.setAttribute("data-del-id",e.id);
-    xb.setAttribute("data-del-desc",e.description||"");
-    xb.setAttribute("data-del-amt",fmt(dispAmt));
+    const _safeDesc=(e.description||"").replace(/'/g,"\\'");
+    xb.setAttribute("onclick","event.stopPropagation();window.__del('"+e.id+"','"+_safeDesc+"')");
     tdX.appendChild(xb);tr.appendChild(tdX);
 
     // Date
@@ -983,20 +982,15 @@ window.ST=async function(v){
   else if(v==="backup")rBackup();
 };
 
-// Permanent delete listener on document - never removed regardless of DOM changes
-document.addEventListener("click", async function(ev){
-  const btn=ev.target.closest("[data-del-id]");
-  if(!btn)return;
-  ev.stopPropagation();
-  const id=btn.getAttribute("data-del-id");
-  const desc=btn.getAttribute("data-del-desc")||"";
-  if(!confirm("Διαγραφή: \""+desc+"\"\nΕίσαι σίγουρος;"))return;
-  try{
-    await fbd(COL,id);
-  }catch(err){
-    alert("Σφάλμα: "+err.message);
+// Global delete function - called from button onclick
+window.__del = async function(id, desc) {
+  if(!confirm("Διαγραφή:\n" + desc + "\nΕίσαι σίγουρος;")) return;
+  try {
+    await fbd(COL, id);
+  } catch(err) {
+    alert("Σφάλμα: " + err.message);
   }
-});
+};
 
 sm("Σύνδεση...","#FFD700");
 await seedE();
