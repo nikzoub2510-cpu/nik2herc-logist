@@ -766,13 +766,11 @@ window.addEventListener("load",function(){
   setTimeout(function(){if(ge("pi"))ge("pi").focus();},200);
   sm("Σύνδεση...","#FFD700");
   seedE();
-  // Real-time listener updates E and re-renders
-  db.collection(COL).onSnapshot(function(snap){
-    E=snap.docs.map(function(d){return d.data();}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  // Load once on startup
+  loadE(function(){
     sm("☁","#90EE90");
-    if(view==="dashboard") rDash();
-    else if(view==="entries") rEnt();
-  },function(){sm("✗","#FF8080");});
+    rDash();
+  });
 });
 </script>
 
