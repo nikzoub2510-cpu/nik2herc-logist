@@ -133,17 +133,23 @@ function uid(){return "e"+Date.now()+Math.random().toString(36).slice(2,5);}
 function pA(s){return parseFloat(String(s||0).replace(",","."))||0;}
 function td(){return new Date().toISOString().slice(0,10);}
 function sups(){
-  // Get current category from form
   var cat = ge("fC") ? ge("fC").value : "";
-  var base = fType==="Έξοδο" ? extraSups : extraClients;
-  // If category selected, show suppliers used in that category
-  // Always include manually added names
-  var fromE = E.filter(function(e){
-    if(e.type !== fType) return false;
-    if(cat && e.category !== cat) return false;
-    return e.supplier;
-  }).map(function(e){return e.supplier;});
-  return [...new Set([...fromE,...base])].filter(Boolean).sort();
+  if(fType==="Έξοδο"){
+    var fromE = E.filter(function(e){
+      if(e.type!=="Έξοδο") return false;
+      if(cat && e.category!==cat) return false;
+      return e.supplier;
+    }).map(function(e){return e.supplier;});
+    return [...new Set([...fromE,...extraSups])].filter(Boolean).sort();
+  }else{
+    // For income: use ONLY client field (not supplier) + manually added clients
+    var fromE = E.filter(function(e){
+      if(e.type!=="Έσοδο") return false;
+      if(cat && e.category!==cat) return false;
+      return e.client; // only entries with explicit client field
+    }).map(function(e){return e.client;});
+    return [...new Set([...fromE,...extraClients])].filter(Boolean).sort();
+  }
 }
 function allSups(){return[...new Set([...E.map(function(e){return e.supplier;}).filter(Boolean),...extraSups,...extraClients])].sort();}
 function sm(msg,col){var el=document.getElementById("smsg");if(!el)return;el.textContent=msg;el.style.color=col||"#fff";if(msg)setTimeout(function(){el.textContent="";},3000);}
@@ -355,7 +361,7 @@ function rEnt(){
       '<td style="white-space:nowrap;cursor:pointer" onclick="togRow(\''+e.id+'\')">'+(ex?"▾ ":"▸ ")+dd+'</td>'+
       '<td onclick="togRow(\''+e.id+'\')"><span class="tag" style="background:'+(e.activity==="Κατοικία"?"#EBF2FB":e.activity==="Consulting"?"#FEFAE8":"#F0EAFB")+';color:'+(e.activity==="Κατοικία"?"#1A4E8B":e.activity==="Consulting"?"#B8860B":"#5B2C8B")+'">'+(e.activity==="Κατοικία"?"🏠":"💼")+' '+e.activity+'</span></td>'+
       '<td onclick="togRow(\''+e.id+'\')"><span class="tag" style="background:'+(isI?"#E8F5EE":"#FDF0F0")+';color:'+(isI?"#1A6B3C":"#8B1A1A")+'">'+e.type+'</span></td>'+
-      '<td onclick="togRow(\''+e.id+'\')" style="font-size:12px">'+(e.supplier||"-")+'<br><span style="font-size:10px;color:#9CA3AF">'+(e.description||"")+'</span></td>'+
+      '<td onclick="togRow(\''+e.id+'\')" style="font-size:12px">'+(e.type==="Έσοδο"?(e.client||(e.type==="Έσοδο"?(e.client||e.supplier||"-"):(e.supplier||"-"))):((e.type==="Έσοδο"?(e.client||e.supplier||"-"):(e.supplier||"-"))))+'<br><span style="font-size:10px;color:#9CA3AF">'+(e.description||"")+'</span></td>'+
       '<td style="text-align:right;color:#1A4E8B;font-size:11px">'+(vatA>0?fmt(vatA):"-")+'</td>'+
       '<td style="text-align:right;font-weight:700;color:'+(isI?"#1A6B3C":"#8B1A1A")+'">'+fmt(amt)+'</td>'+
     '</tr>';
@@ -438,9 +444,14 @@ function rAdd(){
             '</div>'+
           '</div></div>'+
         '<div class="fu"><label class="fl">Περιγραφή *</label><input id="fDe" class="fi" placeholder="π.χ. Ρεύμα Ιανουαρίου..."></div>'+
-        '<div><label class="fl">ΦΠΑ %</label>'+
+        '<div id="vatPctRow"><label class="fl">ΦΠΑ %</label>'+
           '<select id="fV" class="fi" onchange="uP()"><option value="0">0%</option><option value="6">6%</option><option value="13">13%</option><option value="24" selected>24%</option></select></div>'+
         '<div><label class="fl">Τελική Αξία (με ΦΠΑ) *</label><input id="fAV" class="fi" placeholder="0.00" oninput="uP()"></div>'+
+        '<div class="fu"><div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:7px;border:1px solid #BDD4F0;background:#EBF2FB">'+
+          '<input type="checkbox" id="fMV" onchange="togMV()" style="width:15px;height:15px;cursor:pointer">'+
+          '<label for="fMV" style="font-size:12px;font-weight:600;cursor:pointer;color:#1A4E8B">Χειροκίνητο ΦΠΑ (μικτά τιμολόγια)</label>'+
+          '<input id="fMVamt" class="fi" placeholder="Ποσό ΦΠΑ" oninput="uP()" style="display:none;max-width:180px">'+
+        '</div></div>'+
         '<div id="pB" class="fu" style="display:none"></div>'+
         '<div class="fu"><label class="fl">Σημείωση</label><input id="fN" class="fi" placeholder="Προαιρετική..."></div>'+
         '<div class="fu"><div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;border:1px solid #E8D080;background:#FEFAE8" id="iB">'+
@@ -479,17 +490,33 @@ function uC(){
 }
 function acat(){var n=prompt("Νέα κατηγορία:");if(!n||!n.trim())return;if(!extraCats[fAct])extraCats[fAct]={};if(!extraCats[fAct][fType])extraCats[fAct][fType]=[];extraCats[fAct][fType].push(n.trim());uC();if(ge("fC"))ge("fC").value=n.trim();}
 function togWH(){var ch=ge("fWH")&&ge("fWH").checked;var inp=ge("fWHamt");if(inp)inp.style.display=ch?"":"none";uP();}
+function togMV(){
+  var ch=ge("fMV")&&ge("fMV").checked;
+  var inp=ge("fMVamt");
+  var pctRow=ge("vatPctRow");
+  if(inp)inp.style.display=ch?"":"none";
+  if(pctRow)pctRow.style.opacity=ch?"0.4":"1";
+  uP();
+}
 function uP(){
   var entered=pA(ge("fAV")?ge("fAV").value:"");
+  var manualVat=ge("fMV")&&ge("fMV").checked;
   var vp=parseInt(ge("fV")?ge("fV").value:"24");
   var whCh=ge("fWH")&&ge("fWH").checked;
   var whA=whCh?pA(ge("fWHamt")?ge("fWHamt").value:""):0;
   var box=ge("pB");if(!box)return;
   if(entered<=0){box.style.display="none";return;}
   box.style.display="block";
-  var net=r2(entered/(1+vp/100));
-  var vatA=r2(entered-net);
-  var finalA=r2(entered-whA);
+  var vatA, net, finalA;
+  if(manualVat){
+    vatA=pA(ge("fMVamt")?ge("fMVamt").value:"0");
+    net=r2(entered-vatA);
+    finalA=r2(entered-whA);
+  }else{
+    net=r2(entered/(1+vp/100));
+    vatA=r2(entered-net);
+    finalA=r2(entered-whA);
+  }
   if(fType==="Έξοδο"){
     box.style.cssText="grid-column:1/-1;background:#FDF0F0;border:1px solid #F0C0C0;border-radius:7px;padding:9px 12px";
     box.innerHTML='<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">'+
@@ -517,20 +544,35 @@ function doSv(){
   if(!desc||!entStr){if(eB){eB.textContent="Συμπληρώστε Περιγραφή και Αξία";eB.style.display="block";}return;}
   if(eB)eB.style.display="none";
   var entered=pA(entStr),vp=parseInt(ge("fV").value||"24");
+  var manualVat=ge("fMV")&&ge("fMV").checked;
   var whCh=ge("fWH")&&ge("fWH").checked;
   var whA=whCh?r2(pA(ge("fWHamt")?ge("fWHamt").value||"0":"0")):0;
-  var net=r2(entered/(1+vp/100)),vatA=r2(entered-net),amount=r2(entered-whA);
+  var vatA,net;
+  if(manualVat){
+    vatA=pA(ge("fMVamt")?ge("fMVamt").value:"0");
+    net=r2(entered-vatA);
+  }else{
+    net=r2(entered/(1+vp/100));
+    vatA=r2(entered-net);
+  }
+  var amount=r2(entered-whA);
   var dy=String(ge("fD").value||"1").padStart(2,"0"),mn=ge("fM").value||"01",yr=ge("fY").value||"2026";
   var newId=uid();
   sm("Αποθήκευση...","#FFD700");
   db.collection(COL).doc(newId).set({
     id:newId,date:yr+"-"+mn+"-"+dy,activity:fAct,type:fType,
-    category:ge("fC").value||"",description:desc,supplier:ddSup,invoice:fInv,
+    category:ge("fC").value||"",description:desc,
+    supplier:fType==="Έξοδο"?ddSup:"",
+    client:fType==="Έσοδο"?ddSup:"",
+    invoice:fInv,
     note:ge("fN").value.trim()||"",
-    totalInvoice:entered,net:net,vat:vatA,vatPct:vp,withholding:whA,amount:amount
+    totalInvoice:entered,net:net,vat:vatA,vatPct:vp,withholding:whA,amount:amount,client:fType==="Έσοδο"?ddSup:"",supplier:fType==="Έξοδο"?ddSup:""
   }).then(function(){
     ge("fAV").value="";ge("fDe").value="";ge("fN").value="";ge("fC").value="";ge("fI").checked=false;
     var fwh=ge("fWH");if(fwh)fwh.checked=false;
+    var fmv=ge("fMV");if(fmv)fmv.checked=false;
+    var fmva=ge("fMVamt");if(fmva){fmva.value="";fmva.style.display="none";}
+    var pctRow=ge("vatPctRow");if(pctRow)pctRow.style.opacity="1";
     var fwha=ge("fWHamt");if(fwha){fwha.value="";fwha.style.display="none";}
     fInv=false;ddSup="";
     var v=ge("ddV");if(v){v.textContent="-- Επιλέξτε --";v.style.color="#9CA3AF";}
