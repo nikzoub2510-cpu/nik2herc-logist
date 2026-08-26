@@ -60,7 +60,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F4F8;color:#1A2332}
 .dlb{font-size:10px;font-weight:600;color:#6B7A8D;text-transform:uppercase;display:block;margin-bottom:1px}
 .ddw{position:relative}
 .ddt{width:100%;padding:7px 10px;border:1px solid #DDE4ED;border-radius:7px;font-size:13px;background:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-.ddm{position:absolute;top:calc(100%+3px);left:0;right:0;background:#fff;border:1px solid #DDE4ED;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.1);z-index:200;max-height:340px;display:none;flex-direction:column}
+.ddm{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1px solid #DDE4ED;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.1);z-index:200;max-height:320px;display:none;flex-direction:column}
 .ddm.op{display:flex}
 .dds{padding:5px 7px 2px}.dds input{width:100%;padding:5px 8px;border:1px solid #DDE4ED;border-radius:5px;font-size:12px;outline:none}
 .ddl{overflow-y:auto;flex:1}
@@ -787,4 +787,7 @@ window.addEventListener("load",function(){
   <div class="logo" onclick="changeYear()">ΝΙΚΟΣ ΖΟΥΜΠΟΥΛΑΚΗΣ — Λογιστήριο <span id="yr">2026</span></div>
   <div class="nav">
     <button class="nb on" onclick="ST('dashboard')">📊 Dashboard</button>
-    <button class="nb" onclick="ST('tax')"
+    <button class="nb" onclick="ST('tax')">📋 Φορολογικά</button>
+    <button class="nb" onclick="ST('entries')">📋 Εγγραφές</button>
+    <button class="nb" onclick="ST('add')">➕ Νέα Εγγραφή</button>
+    <button c
