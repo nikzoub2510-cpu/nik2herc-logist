@@ -142,12 +142,13 @@ function saveVD(p,cb){db.collection("settings").doc("vat_p").set({p:p}).then(cb|
 // Simple, direct: delete from Firestore, then reload E, then re-render
 function delEntry(id,desc){
   if(!confirm("Διαγραφή:\n\""+desc+"\"")) return;
-  db.collection(COL).doc(id).delete().then(function(){
-    loadE(function(){
-      if(view==="entries") rEnt();
-      if(view==="dashboard") rDash();
-    });
-  }).catch(function(e){alert("Σφάλμα: "+e.message);});
+  // Αφαίρεση ΤΩΡΑ από τον πίνακα και render
+  E = E.filter(function(e){ return e.id !== id; });
+  rEnt();
+  rDash();
+  // Και διαγραφή από Firebase
+  db.collection(COL).doc(id).delete()
+    .catch(function(e){alert("Σφάλμα: "+e.message);});
 }
 
 // ── LOAD ENTRIES ──────────────────────────────────────────
