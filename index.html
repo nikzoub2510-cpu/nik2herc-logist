@@ -790,4 +790,24 @@ window.addEventListener("load",function(){
     <button class="nb" onclick="ST('tax')">📋 Φορολογικά</button>
     <button class="nb" onclick="ST('entries')">📋 Εγγραφές</button>
     <button class="nb" onclick="ST('add')">➕ Νέα Εγγραφή</button>
-    <button c
+    <button class="nb" onclick="ST('rents')">🏘 Ενοίκια</button>
+  </div>
+  <div style="display:flex;gap:5px;align-items:center">
+    <span class="smsg" id="smsg"></span>
+    <input type="file" id="ifile" accept=".json" style="display:none" onchange="importJ(event)">
+    <button class="btn bbl" onclick="document.getElementById('ifile').click()">📂 Import</button>
+    <button class="btn bgd" onclick="ST('backup')">⬇ Backup</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="v-dashboard"></div>
+  <div id="v-tax" style="display:none"></div>
+  <div id="v-entries" style="display:none"></div>
+  <div id="v-add" style="display:none"></div>
+  <div id="v-rents" style="display:none"></div>
+  <div id="v-backup" style="display:none"></div>
+</div>
+
+</body>
+</html>
