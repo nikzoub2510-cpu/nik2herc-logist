@@ -138,7 +138,7 @@ function ge(id){return document.getElementById(id);}
 
 // ── LOAD FROM FIRESTORE ───────────────────────────────────
 function loadAndRender(){
-  db.collection(COL).get({source:'server'}).then(function(snap){
+  db.collection(COL).get().then(function(snap){
     E = snap.docs.map(function(d){return d.data();}).sort(function(a,b){return a.date.localeCompare(b.date);});
     if(view==="dashboard") rDash();
     else if(view==="entries") rEnt();
@@ -148,12 +148,14 @@ function loadAndRender(){
 // ── DELETE ────────────────────────────────────────────────
 function delEntry(id, desc){
   if(!confirm("Διαγραφή:\n\"" + desc + "\"")) return;
-  db.collection(COL).doc(id).delete().then(function(){
-    loadAndRender();
-    sm("Διαγράφηκε","#90EE90");
-  }).catch(function(e){
-    alert("Σφάλμα: " + e.message);
-  });
+  // 1. Αφαίρεση από local πίνακα και άμεσο render
+  E = E.filter(function(e){ return e.id !== id; });
+  if(view==="entries") rEnt();
+  if(view==="dashboard") rDash();
+  // 2. Διαγραφή από Firebase στο background
+  db.collection(COL).doc(id).delete()
+    .then(function(){ sm("Διαγράφηκε","#90EE90"); })
+    .catch(function(e){ alert("Σφάλμα: " + e.message); });
 }
 
 // ── SEED ─────────────────────────────────────────────────
