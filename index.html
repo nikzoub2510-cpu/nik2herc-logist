@@ -420,7 +420,7 @@ function rAdd(){
         '<div><label class="fl">Δραστηριότητα</label>'+
           '<select id="fA" class="fi" onchange="onAct()">'+ACTS.map(function(a){return '<option'+(a===fAct?" selected":"")+'>'+a+'</option>';}).join("")+'</select></div>'+
         '<div><label class="fl">Κατηγορία</label>'+
-          '<div class="cw"><select id="fC" class="fi" style="flex:1" onchange="ddRL('')"><option value="">-- Επιλέξτε --</option>'+cats.map(function(c){return '<option>'+c+'</option>';}).join("")+'</select>'+
+          '<div class="cw"><select id="fC" class="fi" style="flex:1" onchange="ddRL(this.value)"><option value="">-- Επιλέξτε --</option>'+cats.map(function(c){return '<option>'+c+'</option>';}).join("")+'</select>'+
           '<button class="cp" onclick="acat()">+</button></div></div>'+
         '<div><label class="fl" id="sLbl">'+(fType==="Έξοδο"?"Προμηθευτής":"Πελάτης")+'</label>'+
           '<div class="ddw" id="ddW">'+
