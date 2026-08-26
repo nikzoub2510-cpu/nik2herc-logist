@@ -132,7 +132,14 @@ function fmt(n){return r2(n).toLocaleString("el-GR",{minimumFractionDigits:2,max
 function uid(){return "e"+Date.now()+Math.random().toString(36).slice(2,5);}
 function pA(s){return parseFloat(String(s||0).replace(",","."))||0;}
 function td(){return new Date().toISOString().slice(0,10);}
-function sups(){return[...new Set([...E.map(function(e){return e.supplier;}).filter(Boolean),...extraSups])].sort();}
+function sups(){
+  if(fType==="Έξοδο"){
+    return[...new Set([...E.filter(function(e){return e.type==="Έξοδο";}).map(function(e){return e.supplier;}).filter(Boolean),...extraSups])].sort();
+  }else{
+    return[...new Set([...E.filter(function(e){return e.type==="Έσοδο";}).map(function(e){return e.supplier;}).filter(Boolean),...extraClients])].sort();
+  }
+}
+function allSups(){return[...new Set([...E.map(function(e){return e.supplier;}).filter(Boolean),...extraSups,...extraClients])].sort();}
 function sm(msg,col){var el=document.getElementById("smsg");if(!el)return;el.textContent=msg;el.style.color=col||"#fff";if(msg)setTimeout(function(){el.textContent="";},3000);}
 function ge(id){return document.getElementById(id);}
 
@@ -538,7 +545,7 @@ function ddRL(srch){
 function ddP(s){ddSup=s;var v=ge("ddV");if(v){v.textContent=s;v.style.color="#1A2332";}ddCl();}
 function ddSN(){var b=ge("ddAB"),r=ge("ddNR");if(b)b.style.display="none";if(r)r.style.display="flex";setTimeout(function(){var n=ge("ddNI");if(n)n.focus();},40);}
 function ddHN(){var b=ge("ddAB"),r=ge("ddNR");if(b)b.style.display="";if(r)r.style.display="none";}
-function ddCN(){var n=ge("ddNI");if(!n)return;var v=n.value.trim();if(v){extraSups.push(v);ddP(v);}}
+function ddCN(){var n=ge("ddNI");if(!n)return;var v=n.value.trim();if(v){if(fType==="Έξοδο")extraSups.push(v);else extraClients.push(v);ddP(v);}}
 document.addEventListener("click",function(ev){var w=ge("ddW");if(w&&!w.contains(ev.target))ddCl();});
 
 // ── RENTS ─────────────────────────────────────────────────
@@ -777,21 +784,4 @@ window.addEventListener("load",function(){
     <button class="nb" onclick="ST('rents')">🏘 Ενοίκια</button>
   </div>
   <div style="display:flex;gap:5px;align-items:center">
-    <span class="smsg" id="smsg"></span>
-    <input type="file" id="ifile" accept=".json" style="display:none" onchange="importJ(event)">
-    <button class="btn bbl" onclick="document.getElementById('ifile').click()">📂 Import</button>
-    <button class="btn bgd" onclick="ST('backup')">⬇ Backup</button>
-  </div>
-</div>
-
-<div class="wrap">
-  <div id="v-dashboard"></div>
-  <div id="v-tax" style="display:none"></div>
-  <div id="v-entries" style="display:none"></div>
-  <div id="v-add" style="display:none"></div>
-  <div id="v-rents" style="display:none"></div>
-  <div id="v-backup" style="display:none"></div>
-</div>
-
-</body>
-</html>
+    <span class="smsg
