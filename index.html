@@ -60,7 +60,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F4F8;color:#1A2332}
 .dlb{font-size:10px;font-weight:600;color:#6B7A8D;text-transform:uppercase;display:block;margin-bottom:1px}
 .ddw{position:relative}
 .ddt{width:100%;padding:7px 10px;border:1px solid #DDE4ED;border-radius:7px;font-size:13px;background:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-.ddm{position:absolute;top:calc(100%+3px);left:0;right:0;background:#fff;border:1px solid #DDE4ED;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.1);z-index:200;max-height:200px;display:none;flex-direction:column}
+.ddm{position:absolute;top:calc(100%+3px);left:0;right:0;background:#fff;border:1px solid #DDE4ED;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.1);z-index:200;max-height:340px;display:none;flex-direction:column}
 .ddm.op{display:flex}
 .dds{padding:5px 7px 2px}.dds input{width:100%;padding:5px 8px;border:1px solid #DDE4ED;border-radius:5px;font-size:12px;outline:none}
 .ddl{overflow-y:auto;flex:1}
@@ -133,11 +133,17 @@ function uid(){return "e"+Date.now()+Math.random().toString(36).slice(2,5);}
 function pA(s){return parseFloat(String(s||0).replace(",","."))||0;}
 function td(){return new Date().toISOString().slice(0,10);}
 function sups(){
-  if(fType==="Έξοδο"){
-    return[...new Set([...E.filter(function(e){return e.type==="Έξοδο";}).map(function(e){return e.supplier;}).filter(Boolean),...extraSups])].sort();
-  }else{
-    return[...new Set([...E.filter(function(e){return e.type==="Έσοδο";}).map(function(e){return e.supplier;}).filter(Boolean),...extraClients])].sort();
-  }
+  // Get current category from form
+  var cat = ge("fC") ? ge("fC").value : "";
+  var base = fType==="Έξοδο" ? extraSups : extraClients;
+  // If category selected, show suppliers used in that category
+  // Always include manually added names
+  var fromE = E.filter(function(e){
+    if(e.type !== fType) return false;
+    if(cat && e.category !== cat) return false;
+    return e.supplier;
+  }).map(function(e){return e.supplier;});
+  return [...new Set([...fromE,...base])].filter(Boolean).sort();
 }
 function allSups(){return[...new Set([...E.map(function(e){return e.supplier;}).filter(Boolean),...extraSups,...extraClients])].sort();}
 function sm(msg,col){var el=document.getElementById("smsg");if(!el)return;el.textContent=msg;el.style.color=col||"#fff";if(msg)setTimeout(function(){el.textContent="";},3000);}
@@ -414,7 +420,7 @@ function rAdd(){
         '<div><label class="fl">Δραστηριότητα</label>'+
           '<select id="fA" class="fi" onchange="onAct()">'+ACTS.map(function(a){return '<option'+(a===fAct?" selected":"")+'>'+a+'</option>';}).join("")+'</select></div>'+
         '<div><label class="fl">Κατηγορία</label>'+
-          '<div class="cw"><select id="fC" class="fi" style="flex:1"><option value="">-- Επιλέξτε --</option>'+cats.map(function(c){return '<option>'+c+'</option>';}).join("")+'</select>'+
+          '<div class="cw"><select id="fC" class="fi" style="flex:1" onchange="ddRL('')"><option value="">-- Επιλέξτε --</option>'+cats.map(function(c){return '<option>'+c+'</option>';}).join("")+'</select>'+
           '<button class="cp" onclick="acat()">+</button></div></div>'+
         '<div><label class="fl" id="sLbl">'+(fType==="Έξοδο"?"Προμηθευτής":"Πελάτης")+'</label>'+
           '<div class="ddw" id="ddW">'+
@@ -456,6 +462,9 @@ function rAdd(){
 
 function setType(t){
   fType=t;
+  // Reset supplier/client selection when switching type
+  ddSup="";
+  var v=ge("ddV");if(v){v.textContent="-- Επιλέξτε --";v.style.color="#9CA3AF";}
   if(ge("bEx"))ge("bEx").className="tb"+(t==="Έξοδο"?" ex":"");
   if(ge("bEs"))ge("bEs").className="tb"+(t==="Έσοδο"?" es":"");
   if(ge("sLbl"))ge("sLbl").textContent=t==="Έξοδο"?"Προμηθευτής":"Πελάτης";
@@ -778,10 +787,4 @@ window.addEventListener("load",function(){
   <div class="logo" onclick="changeYear()">ΝΙΚΟΣ ΖΟΥΜΠΟΥΛΑΚΗΣ — Λογιστήριο <span id="yr">2026</span></div>
   <div class="nav">
     <button class="nb on" onclick="ST('dashboard')">📊 Dashboard</button>
-    <button class="nb" onclick="ST('tax')">📋 Φορολογικά</button>
-    <button class="nb" onclick="ST('entries')">📋 Εγγραφές</button>
-    <button class="nb" onclick="ST('add')">➕ Νέα Εγγραφή</button>
-    <button class="nb" onclick="ST('rents')">🏘 Ενοίκια</button>
-  </div>
-  <div style="display:flex;gap:5px;align-items:center">
-    <span class="smsg
+    <button class="nb" onclick="ST('tax')"
