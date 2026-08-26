@@ -342,7 +342,7 @@ function rEnt(){
       '<td style="white-space:nowrap;cursor:pointer" onclick="togRow(\''+e.id+'\')">'+(ex?"▾ ":"▸ ")+dd+'</td>'+
       '<td onclick="togRow(\''+e.id+'\')"><span class="tag" style="background:'+(e.activity==="Κατοικία"?"#EBF2FB":e.activity==="Consulting"?"#FEFAE8":"#F0EAFB")+';color:'+(e.activity==="Κατοικία"?"#1A4E8B":e.activity==="Consulting"?"#B8860B":"#5B2C8B")+'">'+(e.activity==="Κατοικία"?"🏠":"💼")+' '+e.activity+'</span></td>'+
       '<td onclick="togRow(\''+e.id+'\')"><span class="tag" style="background:'+(isI?"#E8F5EE":"#FDF0F0")+';color:'+(isI?"#1A6B3C":"#8B1A1A")+'">'+e.type+'</span></td>'+
-      '<td onclick="togRow(\''+e.id+'\')" style="font-size:12px">'+(e.description||"-")+'<br><span style="font-size:10px;color:#9CA3AF">'+(e.supplier||"")+'</span></td>'+
+      '<td onclick="togRow(\''+e.id+'\')" style="font-size:12px">'+(e.supplier||"-")+'<br><span style="font-size:10px;color:#9CA3AF">'+(e.description||"")+'</span></td>'+
       '<td style="text-align:right;color:#1A4E8B;font-size:11px">'+(vatA>0?fmt(vatA):"-")+'</td>'+
       '<td style="text-align:right;font-weight:700;color:'+(isI?"#1A6B3C":"#8B1A1A")+'">'+fmt(amt)+'</td>'+
     '</tr>';
@@ -378,7 +378,7 @@ function rEnt(){
       '<div style="margin-left:auto;text-align:right"><div style="font-size:11px;color:#6B7A8D">'+fil.length+' εγγραφές</div><div style="font-size:12px;font-weight:600;color:#1A6B3C">↑ '+fmt(totI)+'</div><div style="font-size:12px;font-weight:600;color:#8B1A1A">↓ '+fmt(totX)+'</div></div>'+
     '</div>'+
     '<div class="tw"><table class="tbl">'+
-      '<thead><tr><th style="width:34px">✕</th><th>Ημερομηνία</th><th>Δραστ.</th><th>Τύπος</th><th>Περιγραφή / Προμηθευτής</th><th style="text-align:right">ΦΠΑ</th><th style="text-align:right">Ποσό</th></tr></thead>'+
+      '<thead><tr><th style="width:34px">✕</th><th>Ημερομηνία</th><th>Δραστ.</th><th>Τύπος</th><th>Προμηθευτής / Περιγραφή</th><th style="text-align:right">ΦΠΑ</th><th style="text-align:right">Ποσό</th></tr></thead>'+
       '<tbody>'+(fil.length===0?'<tr><td colspan="7" style="padding:24px;text-align:center;color:#6B7A8D">Δεν υπάρχουν εγγραφές</td></tr>':rows)+'</tbody>'+
     '</table></div>';
 }
